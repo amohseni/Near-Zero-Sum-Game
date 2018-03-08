@@ -29,8 +29,13 @@ vPertub <- function() {
 }
 
 # Perturb payoffs
-p1Payoff0 <- p1Payoff0 + .1 * vPertub()
-p2Payoff0 <- p2Payoff0 + .1 * vPertub()
+for (i in 1:2) {
+  for (j in 1:2) {
+    p1Payoff0[i,j] <- p1Payoff0[i,j] + .1 * vPertub()
+    p2Payoff0[i,j] <- p2Payoff0[i,j] + .1 * vPertub()
+  }
+}
+
 
 # Expected payoff functions
 expPayoff <- function(p, y) {
