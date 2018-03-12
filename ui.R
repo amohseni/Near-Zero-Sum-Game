@@ -60,6 +60,10 @@ shinyUI(fluidPage(
         withMathJax(),
         p('$$P_{ij}=\\cfrac{ e^{\\lambda \\ EU_{ij}(P_{-i})} }{ \\sum_k e^{\\lambda \\ EU_{ik}(P_{-i})} }$$'),
         
+        # Simulate Single Population Button
+        tags$head(tags$script(src = "message-handler.js")),
+        p(actionButton("simulatePlay", "RUN REPEATED GAME"), align = "center"),
+        
         # 2X2 Game Payoff Input Fields
         strong("Zero-Sum Base Game:"),
         
@@ -112,17 +116,17 @@ shinyUI(fluidPage(
         # Error rate
         withMathJax(),
         sliderInput("errorParameter",
-                    "(Smoothing) Parameter \\(\\lambda\\):",
+                    "Smoothing \\(\\lambda\\):",
                     min = 0,
                     max = 100,
-                    value = 5),
+                    value = 50),
         
         # Payoff Perturbation Size Slider
         sliderInput("payoffPerturbations",
                     "Payoff Perturbations:",
                     min = 0,
                     max = 1,
-                    value = 0.1),
+                    value = 0.2),
         
 
         # Simulation Time Slider
@@ -130,11 +134,7 @@ shinyUI(fluidPage(
                     "Rounds Of Play:",
                     min = 1,
                     max = 1000,
-                    value = 200),
-        
-        # Simulate Single Population Button
-        tags$head(tags$script(src = "message-handler.js")),
-        p(actionButton("simulatePlay", "RUN REPEATED GAME"), align = "center")
+                    value = 500)
         
       ),
   

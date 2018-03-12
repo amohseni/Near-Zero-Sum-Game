@@ -14,6 +14,9 @@ options(shiny.sanitize.errors = FALSE)
 # Define server logic
 shinyServer(function(input, output, session) {
   computeDynamics <- reactive({
+    # Activate the simulation when RUN REPATED GAME button is pressed
+    # simulationResetVariable <- input$computeDynamics
+    
     # Import payoff values a, b, c, d
     a <- as.numeric(input$a)
     b <- as.numeric(input$b)
@@ -26,10 +29,10 @@ shinyServer(function(input, output, session) {
     #   T | c, -c | d, -d |
     
     # Assign benchmark game payoffs for both players
-    p1Payoff0 <- data.frame(c(a, -b), c(-c, d))
+    p1Payoff0 <- data.frame(c(a,b), c(c, d))
     rownames(p1Payoff0) <- c("H", "T")
     colnames(p1Payoff0) <- c("H", "T")
-    p2Payoff0 <- data.frame(c(-a, b), c(c, -d))
+    p2Payoff0 <- data.frame(c(-a, -b), c(-c,-d))
     rownames(p2Payoff0) <- c("H", "T")
     colnames(p2Payoff0) <- c("H", "T")
     
@@ -83,7 +86,7 @@ shinyServer(function(input, output, session) {
         freqOfHeads <- as.numeric(hTable[1] / sum(hTable))
         payoffs <- expPayoff(freqOfHeads, y)
         mixedStrategy <-
-          exp(λ   * payoffs[1]) / (exp(λ   * payoffs[1]) + exp(λ   * payoffs[2]))
+          exp(λ    * payoffs[1]) / (exp(λ    * payoffs[1]) + exp(λ    * payoffs[2]))
         return(c(
           ifelse(runif(1, 0, 1) < mixedStrategy, "H", "T"),
           mixedStrategy,
@@ -94,6 +97,7 @@ shinyServer(function(input, output, session) {
     
     # Determing number of rounds of play in simulation
     Duration <- as.numeric(input$roundsOfPlay)
+    
     # Create blank history to record play
     h <-
       data.frame(
@@ -107,7 +111,8 @@ shinyServer(function(input, output, session) {
       )
     
     ### Simulate game for Logit dynamics
-    λ <- as.numeric(input$errorParameter) # Set rationality parameter λ
+    λ  <-
+      as.numeric(input$errorParameter) # Set rationality parameter λ
     for (i in 1:Duration) {
       LBR1 <- LogitBestResponse(i, 1)
       LBR2 <- LogitBestResponse(i, 2)
@@ -121,29 +126,30 @@ shinyServer(function(input, output, session) {
     
     # OUTPUT the history of play to be accessed by other reactive contexts
     h[1, c(3:6)] <- 0.5
-    return(list(h))
+    return(h)
     
   })
   
   # GRAPH: PREDICTION
   output$predictionPlotOutput <- renderPlot({
-    # Activate the simulation when RUN REPATED GAME button is pressed
-    simulationResetVariable <- input$computeDynamics
+    
+    # Determing number of rounds of play in simulation
+    Duration <- as.numeric(input$roundsOfPlay)
     
     # Import relevant variables
-    h <- computeDynamics()[[1]] # Transition matrix
+    h <- computeDynamics() # Transition matrix
     
     # plot the predictions
     dfBelief <-
       data.frame(c(1:Duration), c(as.character(rep(1, Duration)), as.character(rep(2, Duration))), c(h[, 5], h[, 6]))
     colnames(dfBelief) <- c("Round", "Player", "Prediction")
     predictionPlot <- ggplot(dfBelief,
-           aes(
-             x = Round,
-             y = Prediction,
-             group = Player,
-             colour = Player
-           )) +
+                             aes(
+                               x = Round,
+                               y = Prediction,
+                               group = Player,
+                               colour = Player
+                             )) +
       geom_path(alpha = 1, size = 0.8) +
       ggtitle("Prediction of Opponent Strategy") +
       labs(x = "Round Number", y = "Prediction") +
@@ -156,11 +162,11 @@ shinyServer(function(input, output, session) {
   
   # GRAPH: PREDICTION
   output$strategyPlotOutput <- renderPlot({
-    # Activate the simulation when RUN REPATED GAME button is pressed
-    simulationResetVariable <- input$computeDynamics
     
+    # Determing number of rounds of play in simulation
+    Duration <- as.numeric(input$roundsOfPlay)
     # Import relevant variables
-    h <- computeDynamics()[[1]] # Transition matrix
+    h <- computeDynamics() # Transition matrix
     
     # plot the strategies
     dfStrategy <-
