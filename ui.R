@@ -59,7 +59,7 @@ shinyUI(fluidPage(
         
         withMathJax(),
         tags$blockquote("$$P_{ij}=\\cfrac{ e^{\\lambda \\ EU_{ij}(P_{-i})} }{ \\sum_k e^{\\lambda \\ EU_{ik}(P_{-i})} }$$"),
-        tags$details(p("\\(P_{ij}\\) is the probability of player \\(i\\) choosing strategy \\(j\\). \\(EU_{ij}(P_{-i})\\) is the expected utility to player \\(i\\) of choosing strategy \\(j\\) under the blief that her opponent is playing according to the probability distribution \\(P_{-i}\\)."), p("\\(\\lambda\\) denotes the error term. Note that, as error become more costly, they are less likely to occur. In this way, logit choice captures the effect of cost-dependent errors."), p("Moreover, as \\(\\lambda \\rightarrow 0\\), players play each strategy with equal probability, and as \\(\\lambda \\rightarrow \\infty \\) players play perfect best response.")),
+        tags$details(p("\\(P_{ij}\\) is the probability of player \\(i\\) choosing strategy \\(j\\). \\(EU_{ij}(P_{-i})\\) is the expected utility to player \\(i\\) of choosing strategy \\(j\\) under the belief that her opponent is playing according to the probability distribution \\(P_{-i}\\)."), p("\\(\\lambda\\) denotes the error term. Note that, as error become more costly, they are less likely to occur. In this way, logit choice captures the effect of cost-dependent errors."), p("Moreover, as \\(\\lambda \\rightarrow 0\\), players play each strategy with equal probability, and as \\(\\lambda \\rightarrow \\infty \\) players play perfect best response.")),
         # Simulate Single Population Button
         tags$head(tags$script(src = "message-handler.js")),
         p(actionButton("simulatePlay", "RUN REPEATED GAME"), align = "center"),
@@ -117,6 +117,8 @@ shinyUI(fluidPage(
                    tags$blockquote("\\(+ \\ \\omega_{22}\\)")
             )),
         
+        tags$details(p("The game gives the description of the payoffs to Player 1 from each combination of actions by both players \\(U_1(x)\\), for \\(x \\in \\{HH, HT, TH, TT\\} \\)."), p("Since the game is zero-sum, Player 2's payoffs can be inferred from Player 1's, that is \\(U_2(x)=-U_1(x)\\)."), p("Then, each player's payoffs are perturbed by taking random draws \\(\\omega_{ij}\\) from a continuous distribtuion with support on \\([-\\Omega, \\Omega]\\)."), p("This makes the game near-zero-sum")),
+        
         # Error rate
         withMathJax(),
         sliderInput("errorParameter",
@@ -147,7 +149,11 @@ shinyUI(fluidPage(
       style = "padding: 10px; margin-bottom: 10px",
       plotOutput("predictionPlotOutput", height = "350px"),
       tags$br(),
-      plotOutput("strategyPlotOutput", height = "350px")
+      plotOutput("strategyPlotOutput", height = "350px"),
+      tags$h3("References"),
+      tags$div(
+        HTML("Foster, D. P. and H. P. Young (2001). On the impossibility of predicting the behavior of rational agents. <em>Proceedings of the National Academy of Sciences of the United States of America </em> <strong>98</strong>(22), 12848–12853."), br(), br(), HTML("Mohseni, A. and Huttegger, S. (2018). Are Nash equilibria rational? <em> [Working paper] </em>")
+      )
     )
   )
 ))
