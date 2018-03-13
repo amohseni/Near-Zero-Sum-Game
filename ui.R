@@ -45,7 +45,7 @@ shinyUI(fluidPage(
       width = 4,
       p(
         tags$b("Result:"),
-        "In contrast to Foster & Young's result, this model demonstrates how, when rational agents are less-than-perfect in their implementations their plans, they can converge (in the limit) to accurate prediction, and once again learn to play Nash."
+        "In contrast to Foster & Young's result, this model demonstrates how, when rational agents are imperfect in the implementation of their plans, they can converge to accurate prediction and once again learn to play Nash."
       )
     )
     ),
@@ -58,8 +58,8 @@ shinyUI(fluidPage(
         strong("Logit-Choice Function:"),
         
         withMathJax(),
-        p('$$P_{ij}=\\cfrac{ e^{\\lambda \\ EU_{ij}(P_{-i})} }{ \\sum_k e^{\\lambda \\ EU_{ik}(P_{-i})} }$$'),
-        
+        tags$blockquote("$$P_{ij}=\\cfrac{ e^{\\lambda \\ EU_{ij}(P_{-i})} }{ \\sum_k e^{\\lambda \\ EU_{ik}(P_{-i})} }$$"),
+        tags$details(p("\\(P_{ij}\\) is the probability of player \\(i\\) choosing strategy \\(j\\). \\(EU_{ij}(P_{-i})\\) is the expected utility to player \\(i\\) of choosing strategy \\(j\\) under the blief that her opponent is playing according to the probability distribution \\(P_{-i}\\)."), p("\\(\\lambda\\) denotes the error term. Note that, as error become more costly, they are less likely to occur. In this way, logit choice captures the effect of cost-dependent errors."), p("Moreover, as \\(\\lambda \\rightarrow 0\\), players play each strategy with equal probability, and as \\(\\lambda \\rightarrow \\infty \\) players play perfect best response.")),
         # Simulate Single Population Button
         tags$head(tags$script(src = "message-handler.js")),
         p(actionButton("simulatePlay", "RUN REPEATED GAME"), align = "center"),
@@ -86,13 +86,15 @@ shinyUI(fluidPage(
                   numericInput("a", 
                                 label = NULL, 
                                 value = 1,
-                                min = -100)
+                                min = -100),
+                  tags$blockquote("\\(+ \\ \\omega_{11}\\)")
             ),
             column(4,
                    numericInput("b", 
                                 label = NULL, 
                                 value = -1,
-                                min = -100)
+                                min = -100),
+                   tags$blockquote("\\(+ \\ \\omega_{12}\\)")
             )),
         
           # 3rd Row: Payoffs to Type B
@@ -104,26 +106,28 @@ shinyUI(fluidPage(
                    numericInput("c", 
                                 label = NULL, 
                                 value = -1,
-                                min = -100)
+                                min = -100),
+                   tags$blockquote("\\(+ \\ \\omega_{21}\\)")
             ), 
             column(4,
                    numericInput("d", 
                                 label = NULL, 
                                 value = 1,
-                                min = -100)
+                                min = -100),
+                   tags$blockquote("\\(+ \\ \\omega_{22}\\)")
             )),
         
         # Error rate
         withMathJax(),
         sliderInput("errorParameter",
-                    "Smoothing \\(\\lambda\\):",
+                    "Inverse Error Smoothing \\(\\lambda\\):",
                     min = 0,
                     max = 100,
                     value = 50),
         
         # Payoff Perturbation Size Slider
         sliderInput("payoffPerturbations",
-                    "Payoff Perturbations:",
+                    "Payoff Perturbations \\(\\omega_{ij}\\):",
                     min = 0,
                     max = 1,
                     value = 0.2),
@@ -133,15 +137,17 @@ shinyUI(fluidPage(
         sliderInput("roundsOfPlay",
                     "Rounds Of Play:",
                     min = 1,
-                    max = 1000,
-                    value = 500)
+                    max = 10000,
+                    value = 1000)
         
       ),
   
   # Main Panel with Stationary Distribution + Simulation & Stats Panels
     mainPanel(
-      plotOutput("predictionPlotOutput"),
-      plotOutput("strategyPlotOutput")
+      style = "padding: 10px; margin-bottom: 10px",
+      plotOutput("predictionPlotOutput", height = "350px"),
+      tags$br(),
+      plotOutput("strategyPlotOutput", height = "350px")
     )
   )
 ))

@@ -15,7 +15,7 @@ options(shiny.sanitize.errors = FALSE)
 shinyServer(function(input, output, session) {
   computeDynamics <- reactive({
     # Activate the simulation when RUN REPATED GAME button is pressed
-    # simulationResetVariable <- input$computeDynamics
+    input$simulatePlay
     
     # Import payoff values a, b, c, d
     a <- as.numeric(input$a)
@@ -29,10 +29,10 @@ shinyServer(function(input, output, session) {
     #   T | c, -c | d, -d |
     
     # Assign benchmark game payoffs for both players
-    p1Payoff0 <- data.frame(c(a,b), c(c, d))
+    p1Payoff0 <- data.frame(c(a, b), c(c, d))
     rownames(p1Payoff0) <- c("H", "T")
     colnames(p1Payoff0) <- c("H", "T")
-    p2Payoff0 <- data.frame(c(-a, -b), c(-c,-d))
+    p2Payoff0 <- data.frame(c(-a,-b), c(-c, -d))
     rownames(p2Payoff0) <- c("H", "T")
     colnames(p2Payoff0) <- c("H", "T")
     
@@ -86,7 +86,7 @@ shinyServer(function(input, output, session) {
         freqOfHeads <- as.numeric(hTable[1] / sum(hTable))
         payoffs <- expPayoff(freqOfHeads, y)
         mixedStrategy <-
-          exp(λ    * payoffs[1]) / (exp(λ    * payoffs[1]) + exp(λ    * payoffs[2]))
+          exp(λ     * payoffs[1]) / (exp(λ     * payoffs[1]) + exp(λ     * payoffs[2]))
         return(c(
           ifelse(runif(1, 0, 1) < mixedStrategy, "H", "T"),
           mixedStrategy,
@@ -111,18 +111,32 @@ shinyServer(function(input, output, session) {
       )
     
     ### Simulate game for Logit dynamics
-    λ  <-
-      as.numeric(input$errorParameter) # Set rationality parameter λ
-    for (i in 1:Duration) {
-      LBR1 <- LogitBestResponse(i, 1)
-      LBR2 <- LogitBestResponse(i, 2)
-      h[i, 1] <- LBR1[1]
-      h[i, 2] <- LBR2[1]
-      h[i, 3] <- round(as.numeric(LBR1[2]), 4)
-      h[i, 4] <- round(as.numeric(LBR2[2]), 4)
-      h[i, 5] <- round(as.numeric(LBR2[3]), 4)
-      h[i, 6] <- round(as.numeric(LBR1[3]), 4)
-    }
+    
+    # Initialize progress loader
+    withProgress(message = 'Computing:', value = 0, {
+      # Set error/smoothing/rationality parameter λ
+      λ   <- as.numeric(input$errorParameter)
+      
+      for (i in 1:Duration) { # Each round of play
+        # Derive the actions for each player 1, 2
+        # given the history of play thus far
+        LBR1 <- LogitBestResponse(i, 1) 
+        LBR2 <- LogitBestResponse(i, 2)
+        # Record the agent ACTIONS in the history of play
+        h[i, 1] <- LBR1[1]
+        h[i, 2] <- LBR2[1]
+        # Record the agent intended STRATEGIES in the history
+        h[i, 3] <- round(as.numeric(LBR1[2]), 4)
+        h[i, 4] <- round(as.numeric(LBR2[2]), 4)
+        # Record the agent BELIEFS anbout one another's intended strategies in the history of play
+        h[i, 5] <- round(as.numeric(LBR2[3]), 4)
+        h[i, 6] <- round(as.numeric(LBR1[3]), 4)
+        
+        # Increment the progress bar, and update the detail text.
+        incProgress(1 / Duration, detail = paste("Round", i, sep = " "))
+      }
+      
+    })
     
     # OUTPUT the history of play to be accessed by other reactive contexts
     h[1, c(3:6)] <- 0.5
@@ -130,9 +144,8 @@ shinyServer(function(input, output, session) {
     
   })
   
-  # GRAPH: PREDICTION
+  # GRAPH: PREDICTION of OPPONENT STRATEGIES
   output$predictionPlotOutput <- renderPlot({
-    
     # Determing number of rounds of play in simulation
     Duration <- as.numeric(input$roundsOfPlay)
     
@@ -154,21 +167,34 @@ shinyServer(function(input, output, session) {
       ggtitle("Prediction of Opponent Strategy") +
       labs(x = "Round Number", y = "Prediction") +
       ylim(0:1) +
-      scale_color_manual(values = c("gray30", "red2")) +
-      theme_few()
+      scale_color_manual(values = c("gray30", "red2"), labels = c("P1", "P2")) +
+      theme_few() +
+      theme(
+        plot.title = element_text(
+          hjust = 0.5,
+          margin = margin(b = 20, unit = "pt"),
+          lineheight = 1.15
+        ),
+        axis.title.x =  element_text(margin = margin(t = 15, unit = "pt")),
+        axis.title.y =  element_text(margin = margin(r = 15, unit = "pt")),
+        legend.position = "right",
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        text = element_text(size = 16)
+      )
+    # Plot the graph
     print(predictionPlot)
   })
   
   
-  # GRAPH: PREDICTION
+  # GRAPH: AGENT STRATEGIES
   output$strategyPlotOutput <- renderPlot({
-    
     # Determing number of rounds of play in simulation
     Duration <- as.numeric(input$roundsOfPlay)
     # Import relevant variables
     h <- computeDynamics() # Transition matrix
     
-    # plot the strategies
+    # plot the STRATEGIES
     dfStrategy <-
       data.frame(c(1:Duration), c(as.character(rep(1, Duration)), as.character(rep(2, Duration))), c(h[, 3], h[, 4]))
     colnames(dfStrategy) <- c("Round", "Player", "Strategy")
@@ -180,11 +206,25 @@ shinyServer(function(input, output, session) {
                              colour = Player
                            )) +
       geom_path(alpha = 1, size = 0.8) +
-      ggtitle("Individual (Logit Choice) Strategy") +
+      ggtitle("Individual Strategy") +
       labs(x = "Round Number", y = "Strategy") +
       ylim(0:1) +
-      scale_color_manual(values = c("gray30", "red2")) +
-      theme_few()
+      scale_color_manual(values = c("gray30", "red2"), labels = c("P1", "P2")) +
+      theme_few() +
+      theme(
+        plot.title = element_text(
+          hjust = 0.5,
+          margin = margin(b = 20, unit = "pt"),
+          lineheight = 1.15
+        ),
+        axis.title.x =  element_text(margin = margin(t = 15, unit = "pt")),
+        axis.title.y =  element_text(margin = margin(r = 15, unit = "pt")),
+        legend.position = "right",
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        text = element_text(size = 16)
+      )
+    # Plot the graph
     print(strategyPlot)
   })
   
