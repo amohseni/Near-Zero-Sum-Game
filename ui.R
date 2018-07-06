@@ -59,7 +59,7 @@ shinyUI(fluidPage(
         
         withMathJax(),
         tags$blockquote("$$P_{ij}=\\cfrac{ e^{\\lambda \\ EU_{ij}(P_{-i})} }{ \\sum_k e^{\\lambda \\ EU_{ik}(P_{-i})} }$$"),
-        tags$details(p("\\(P_{ij}\\) is the probability of player \\(i\\) choosing strategy \\(j\\). \\(EU_{ij}(P_{-i})\\) is the expected utility to player \\(i\\) of choosing strategy \\(j\\) under the belief that her opponent is playing according to the probability distribution \\(P_{-i}\\)."), p("\\(\\lambda\\) denotes the error term. Note that, as error become more costly, they are less likely to occur. In this way, logit choice captures the effect of cost-dependent errors."), p("Moreover, as \\(\\lambda \\rightarrow 0\\), players play each strategy with equal probability, and as \\(\\lambda \\rightarrow \\infty \\) players play perfect best response.")),
+        tags$details(p("\\(P_{ij}\\) is the probability of player \\(i\\) choosing strategy \\(j\\). \\(EU_{ij}(P_{-i})\\) is the expected utility to player \\(i\\) of choosing strategy \\(j\\) under the belief that her opponent is playing according to the probability distribution \\(P_{-i}\\)."), p("\\(\\lambda\\) denotes the error term. Note that, as error becomes more costly, they are less likely to occur. In this way, logit choice captures the effect of cost-dependent errors."), p("Moreover, as \\(\\lambda \\rightarrow 0\\), players play each strategy with equal probability, and as \\(\\lambda \\rightarrow \\infty \\) players play perfect best response.")),
         # Simulate Single Population Button
         tags$head(tags$script(src = "message-handler.js")),
         p(actionButton("simulatePlay", "RUN REPEATED GAME"), align = "center"),
